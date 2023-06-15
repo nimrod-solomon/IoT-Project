@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name"> Iot Project App</string>
+    <string name="devices">Bluetooth Devices</string>
+    <string name="tutorial_6_load_csv">Tutorial 6 - Load CSV</string>
+    <string name="load_csv">Load CSV</string>
+    <string name="start">Start</string>
+    <string name="stop">Stop</string>
+    <string name="reset">Reset</string>
+    <string name="save">Save</string>
+    <string name="number_of_steps">Number of steps</string>
+    <string name="file_name">File name</string>
+    <string name="load_file">load file</string>
+    <string name="back">back</string>
+    <string-array name="modes">
+        <item>Walking Mode</item>
+        <item>Running Mode</item>
+    </string-array>
+</resources>
