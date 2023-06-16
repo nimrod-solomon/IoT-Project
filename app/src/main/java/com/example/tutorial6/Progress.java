@@ -55,17 +55,18 @@ public class Progress extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_progress);
-        Button BackButton = (Button) findViewById(R.id.StopButton);
+        Button endSessionButton = (Button) findViewById(R.id.endSessionButton);
         TextView estimatedNumStepsTextView = (TextView) findViewById(R.id.Steps);
         TextView estimatedCaloriesBurnedTextView = (TextView) findViewById(R.id.Calories);
         time = (EditText) findViewById(R.id.Time);
-        ProgressBar stepsprogressBar = findViewById(R.id.StepsprogressBar);
-        ProgressBar caloriesprogressBar = findViewById(R.id.CaloriesprogressBar);
+        ProgressBar stepsProgressBar = findViewById(R.id.StepsprogressBar);
+        ProgressBar caloriesProgressBar = findViewById(R.id.CaloriesprogressBar);
         TextView CaloriesPercentage = (TextView) findViewById(R.id.caloriesPercentage);
         TextView stepsPercentage = (TextView) findViewById(R.id.stepsPercentage);
+        Log.d("Debug", "66");
 
-        stepsprogressBar.setMax(100);
-        caloriesprogressBar.setMax(100);
+        stepsProgressBar.setMax(100);
+        caloriesProgressBar.setMax(100);
 
         Intent intent = getIntent();
         float weight = intent.getFloatExtra("weight",0);
@@ -73,9 +74,7 @@ public class Progress extends AppCompatActivity {
         int caloriesTarget = intent.getIntExtra("caloriestarget", 0);
         int stepsTarget = (int) ((caloriesTarget - (0.57 * weight) - (0.415 * height)) / 0.032);
 
-
-
-        BackButton.setOnClickListener(v -> ClickBack());
+        endSessionButton.setOnClickListener(v -> ClickBack());
 /*
             getSupportFragmentManager().addOnBackStackChangedListener(this);
             if (ContextCompat.checkSelfPermission(ProgressActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
@@ -107,7 +106,7 @@ public class Progress extends AppCompatActivity {
             @SuppressLint({"SdCardPath", "SetTextI18n"})
             @Override
             public void run() {
-
+                Log.d("Debug", String.valueOf(t) + ", " +  String.valueOf(x) + ", " + String.valueOf(y) + ", " + String.valueOf(z));
                 N = (float) Math.pow(x*x+y*y+z*z, 0.5);
 
                 if(t < 1.0) { xRest.add(x); yRest.add(y); zRest.add(z);} // Initial data collection
@@ -148,8 +147,8 @@ public class Progress extends AppCompatActivity {
                         stepsPercentage.setText(percentageStepsText);
                         String percentageCaloriesText = caloriesPercentage + "%";
                         CaloriesPercentage.setText(percentageCaloriesText);
-                        stepsprogressBar.setProgress((int) stepPercentage);
-                        caloriesprogressBar.setProgress((int) caloriesPercentage);
+                        stepsProgressBar.setProgress((int) stepPercentage);
+                        caloriesProgressBar.setProgress((int) caloriesPercentage);
 
                     }
                 }
@@ -161,16 +160,16 @@ public class Progress extends AppCompatActivity {
                 //try {y = Float.parseFloat(btDataRow[2]);} catch (Exception e) {y = yPrev;}
                 //try {z = Float.parseFloat(btDataRow[3]);} catch (Exception e) {z = zPrev;}
                 Random rand = new Random();
-                try {x = rand.nextFloat();} catch (Exception e) {x = xPrev;}
-                try {y = rand.nextFloat();} catch (Exception e) {y = yPrev;}
-                try {z = rand.nextFloat();} catch (Exception e) {z = zPrev;}
+                try {x = rand.nextFloat() * 3;} catch (Exception e) {x = xPrev;}
+                try {y = rand.nextFloat() * 3;} catch (Exception e) {y = yPrev;}
+                try {z = rand.nextFloat() * 3;} catch (Exception e) {z = zPrev;}
                 t += 0.02; t = Math.round(t * 100) / 100.0;
                 //Log.d("BlueToothDataStream", "t = " + t + ", " + "x = " + x + ", " + "y = " + y + ", " + "z = " + z + ", " + "N = " + N);
                 mHandlar.postDelayed(this, 20); }
         };
         handler.postDelayed(DataUpdate,20);
 /*
-            BackButton.setOnClickListener(new View.OnClickListener() {
+            endSessionButton.setOnClickListener(new View.OnClickListener() {
                 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
                 @Override
                 public void onClick(View v) {

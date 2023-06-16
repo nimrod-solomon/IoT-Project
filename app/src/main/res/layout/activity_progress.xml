@@ -17,7 +17,8 @@
             android:layout_width="match_parent"
             android:layout_height="69dp"
             android:ems="10"
-            android:inputType="time" />
+            android:inputType="time"
+            android:textAlignment="center"/>
 
         <TextView
             android:id="@+id/textView4"
@@ -95,9 +96,9 @@
             android:text="Estimated Calories Burned: 0" />
 
         <Button
-            android:id="@+id/StopButton"
+            android:id="@+id/endSessionButton"
             android:layout_width="match_parent"
-            android:layout_height="76dp"
-            android:text="Back" />
+            android:layout_height="wrap_content"
+            android:text="End Session" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

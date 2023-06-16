@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name"> Iot Project App</string>
+    <string name="app_name">T-Sport</string>
     <string name="devices">Bluetooth Devices</string>
     <string name="tutorial_6_load_csv">Tutorial 6 - Load CSV</string>
     <string name="load_csv">Load CSV</string>

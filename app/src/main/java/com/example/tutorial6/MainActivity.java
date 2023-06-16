@@ -1,5 +1,6 @@
 package com.example.tutorial6;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -22,6 +23,7 @@ import com.opencsv.CSVReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -55,8 +57,7 @@ public class MainActivity extends AppCompatActivity {
         colors.add(Color.CYAN);
         colors.add(Color.BLUE);
         colors.add(Color.CYAN);
-
-        ArrayList<String[]> csvData = CsvRead("/sdcard/csv_dir/data.csv");
+        @SuppressLint("SdCardPath") ArrayList<String[]> csvData = CsvRead("/sdcard/csv_dir/data.csv");
 
 
         ArrayList<Integer> steps = new ArrayList<>();
@@ -117,10 +118,13 @@ public class MainActivity extends AppCompatActivity {
         try {
             File file = new File(filename);
             CSVReader reader = new CSVReader(new FileReader(file));
-            String[] nextLine;
-            while ((nextLine = reader.readNext()) != null) {
-                if (nextLine != null) { csvData.add(nextLine); } } }
-        catch (Exception e) { e.printStackTrace(); }
+            String[] nextLine = reader.readNext();
+            while ((nextLine) != null) {
+                csvData.add(nextLine);
+                nextLine = reader.readNext();
+                }
+        }
+        catch (Exception e) { Log.d("Debug", e.getMessage()); }
         return csvData;
     }
 }
