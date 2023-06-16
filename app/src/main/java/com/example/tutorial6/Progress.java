@@ -41,7 +41,6 @@ public class Progress extends AppCompatActivity {
     Runnable DataUpdate;
     String numSteps = "";
     long sessionStartTime;
-    private static final long TIME_DIFFERENCE = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
     float x = 0.0F, y = 0.0F, z = 0.0F, xPrev = 0.0F, yPrev = 0.0F, zPrev = 0.0F;
     List<Float> xRest = new ArrayList<>();
     List<Float> yRest = new ArrayList<>();
@@ -53,22 +52,25 @@ public class Progress extends AppCompatActivity {
     int estimatedCaloriesBurned = 0;
     private final Handler mHandlar = new Handler();
     public String[] btDataRow;
-    int targetSteps = 10000; // Example target number of steps
     int userCaloriesTarget = 100, userHeight = 180, userWeight = 70;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_progress);
+
         Button endSessionButton = (Button) findViewById(R.id.endSessionButton);
+
         TextView estimatedNumStepsTextView = (TextView) findViewById(R.id.Steps);
         TextView estimatedCaloriesBurnedTextView = (TextView) findViewById(R.id.Calories);
+
         time = (EditText) findViewById(R.id.Time);
+
         ProgressBar stepsProgressBar = findViewById(R.id.StepsprogressBar);
         ProgressBar caloriesProgressBar = findViewById(R.id.CaloriesprogressBar);
-        TextView CaloriesPercentage = (TextView) findViewById(R.id.caloriesPercentage);
-        TextView stepsPercentage = (TextView) findViewById(R.id.stepsPercentage);
-
         stepsProgressBar.setMax(100);
         caloriesProgressBar.setMax(100);
+
+        TextView CaloriesPercentage = (TextView) findViewById(R.id.caloriesPercentage);
+        TextView stepsPercentage = (TextView) findViewById(R.id.stepsPercentage);
 
 
         if( getIntent().getExtras() != null) {
@@ -77,10 +79,11 @@ public class Progress extends AppCompatActivity {
             userHeight = Integer.parseInt(userArray[0]);
             userWeight = Integer.parseInt(userArray[1]);
             userCaloriesTarget = Integer.parseInt(userArray[2]);
-            Log.d("Debug", "h = " + userHeight + ", w =" + userWeight + ", c = " + userCaloriesTarget);
-        }
+            Log.d("Debug", "h = " + userHeight + ", w =" + userWeight + ", c = " + userCaloriesTarget); }
 
-        int stepsTarget = (int) ((userCaloriesTarget - (0.57 * userWeight) - (0.415 * userHeight)) / 0.032);
+        // todo: fix formula
+        //int stepsTarget = (int) ((userCaloriesTarget - (0.57 * userWeight) - (0.415 * userHeight)) / 0.032);
+        int stepsTarget = userCaloriesTarget * 40;
 
         endSessionButton.setOnClickListener(v -> ClickBack());
 /*
@@ -95,24 +98,16 @@ public class Progress extends AppCompatActivity {
 */
         startThread();
 
-        sessionStartTime = System.currentTimeMillis(); //+ TIME_DIFFERENCE;
-
-        // Update the time initially
-        updateTime();
-
+        sessionStartTime = System.currentTimeMillis();
+        updateTime();  // Update the time initially
         // Schedule automatic time updates every second
-        handler.postDelayed(runnable = new Runnable() {
-            public void run() {
-                updateTime();
-                handler.postDelayed(this, 1000);
-            }
-        }, 1000);
+        handler.postDelayed(runnable = new Runnable() { public void run() { updateTime(); handler.postDelayed(this, 1000); } }, 1000);
 
         DataUpdate = new Runnable() {
             @SuppressLint({"SdCardPath", "SetTextI18n"})
             @Override
             public void run() {
-                Log.d("Debug", String.valueOf(t) + ", " +  String.valueOf(x) + ", " + String.valueOf(y) + ", " + String.valueOf(z));
+                //Log.d("Debug", String.valueOf(t) + ", " +  String.valueOf(x) + ", " + String.valueOf(y) + ", " + String.valueOf(z));
                 N = (float) Math.pow(x*x+y*y+z*z, 0.5);
                 if(t < 1.0) { xRest.add(x); yRest.add(y); zRest.add(z); } // Initial data collection
                 else {
@@ -136,21 +131,21 @@ public class Progress extends AppCompatActivity {
                     float zNormalized = z - zSum / zRest.size();
 
                     float N_normalized = (float) Math.pow(xNormalized * xNormalized + yNormalized * yNormalized + zNormalized * zNormalized, 0.5);
-                    Log.d("Debug", "normalized state coordinates = (" + xNormalized + ", " + yNormalized + ", " + zNormalized + "). N_normalized = " + N_normalized);
-                    Log.d("Debug", "estimated num steps = " + estimatedNumSteps);
+                    //Log.d("Debug", "normalized state coordinates = (" + xNormalized + ", " + yNormalized + ", " + zNormalized + "). N_normalized = " + N_normalized);
+                    //Log.d("Debug", "estimated num steps = " + estimatedNumSteps);
                     // check every 0.5 seconds if step was done and update relevant fields if so
-                    float threshold = 0.5F; // in rest, N_normalized ~ 0.05 m/sec^2  // todo: final value to be determined
+                    float threshold = 0.4F; // in rest, N_normalized ~ 0.05 m/sec^2  // todo: final value to be determined
                     if (( (t - (int)t)==0 || (t - (int)t)==0.5) && N_normalized > threshold) {
                         estimatedNumSteps += 1;
                         estimatedNumStepsTextView.setText("Estimated Number of Steps: " + estimatedNumSteps);
-                        estimatedCaloriesBurned = (int) ((0.57 * userWeight) + (0.415 * userHeight) + (0.032 * estimatedNumSteps));
+                        // estimatedCaloriesBurned = (int) ((0.57 * userWeight) + (0.415 * userHeight) + (0.032 * estimatedNumSteps));
+                        estimatedCaloriesBurned = estimatedNumSteps / 40; // todo fix formula
                         estimatedCaloriesBurnedTextView.setText("Estimated Number of Calories: " + estimatedCaloriesBurned);
-                        float stepPercentage = 0, caloriesPercentage = 0;
-                        try {
-                            stepPercentage = (float) (estimatedNumSteps / stepsTarget) * 100;
-                            caloriesPercentage = (float) (estimatedCaloriesBurned / userCaloriesTarget) * 100;
-                        }
-                        catch (Exception e) { Log.d("Debug", Objects.requireNonNull(e.getMessage())); return;}
+                        //float stepPercentage = 0, caloriesPercentage = 0;
+                        float stepPercentage = (float) estimatedNumSteps / (float) stepsTarget * 100;
+                        stepPercentage = Math.round(stepPercentage * 10) / 10f;
+                        float caloriesPercentage = (float) estimatedCaloriesBurned / (float) userCaloriesTarget * 100;
+                        caloriesPercentage = Math.round(caloriesPercentage * 10) / 10f;
                         String percentageStepsText = stepPercentage + "%";
                         stepsPercentage.setText(percentageStepsText);
                         String percentageCaloriesText = caloriesPercentage + "%";
@@ -200,9 +195,7 @@ public class Progress extends AppCompatActivity {
         long elapsedTime = currentTime - sessionStartTime;
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
         String elapsedTimeFormatted = sdf.format(new Date(elapsedTime));
-        time.setText(elapsedTimeFormatted);
-
-    }
+        time.setText(elapsedTimeFormatted); }
 
     public void startThread() {
         Thread thread = new Thread() {
@@ -211,22 +204,16 @@ public class Progress extends AppCompatActivity {
                 while (true) {
                     btDataRow = TerminalFragment.getDataRow();
                     // Sleep for 0.02 seconds.
-                    try { Thread.sleep(20); } catch (InterruptedException e) { Log.d("Debug", Objects.requireNonNull(e.getMessage()));}
-                }
-            }
-        };
-        thread.start();
-    }
+                    try { Thread.sleep(20); } catch (InterruptedException e) { Log.d("Debug", Objects.requireNonNull(e.getMessage()));} } } };
+        thread.start(); }
 
-    public void onBackStackChanged() {
-        getSupportActionBar().setDisplayHomeAsUpEnabled(getSupportFragmentManager().getBackStackEntryCount() > 0); }
+    //public void onBackStackChanged() { getSupportActionBar().setDisplayHomeAsUpEnabled(getSupportFragmentManager().getBackStackEntryCount() > 0); }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,R.array.modes, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        return true;
-    }
+        return true; }
 
     private void ClickBack(){ finish(); }
 
@@ -288,7 +275,6 @@ public class Progress extends AppCompatActivity {
     }
 
     @Override
-    public void onPointerCaptureChanged(boolean hasCapture) {
-        super.onPointerCaptureChanged(hasCapture);
-    }
+    public void onPointerCaptureChanged(boolean hasCapture) { super.onPointerCaptureChanged(hasCapture); }
+
 }
