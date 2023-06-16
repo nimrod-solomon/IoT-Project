@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.widget.ProgressBar;
 import android.os.Bundle;
 import android.os.Handler;
+
+import java.util.Objects;
 import java.util.Random;
 
 import android.util.Log;
@@ -52,6 +54,7 @@ public class Progress extends AppCompatActivity {
     private final Handler mHandlar = new Handler();
     public String[] btDataRow;
     int targetSteps = 10000; // Example target number of steps
+    int userCaloriesTarget = 100, userHeight = 180, userWeight = 70;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_progress);
@@ -63,16 +66,21 @@ public class Progress extends AppCompatActivity {
         ProgressBar caloriesProgressBar = findViewById(R.id.CaloriesprogressBar);
         TextView CaloriesPercentage = (TextView) findViewById(R.id.caloriesPercentage);
         TextView stepsPercentage = (TextView) findViewById(R.id.stepsPercentage);
-        Log.d("Debug", "66");
 
         stepsProgressBar.setMax(100);
         caloriesProgressBar.setMax(100);
 
-        Intent intent = getIntent();
-        float weight = intent.getFloatExtra("weight",0);
-        int height = intent.getIntExtra("age", 0);
-        int caloriesTarget = intent.getIntExtra("caloriestarget", 0);
-        int stepsTarget = (int) ((caloriesTarget - (0.57 * weight) - (0.415 * height)) / 0.032);
+
+        if( getIntent().getExtras() != null) {
+            String userSettings = getIntent().getStringExtra("userSettings");
+            String[] userArray = userSettings.split(", ");
+            userHeight = Integer.parseInt(userArray[0]);
+            userWeight = Integer.parseInt(userArray[1]);
+            userCaloriesTarget = Integer.parseInt(userArray[2]);
+            Log.d("Debug", "h = " + userHeight + ", w =" + userWeight + ", c = " + userCaloriesTarget);
+        }
+
+        int stepsTarget = (int) ((userCaloriesTarget - (0.57 * userWeight) - (0.415 * userHeight)) / 0.032);
 
         endSessionButton.setOnClickListener(v -> ClickBack());
 /*
@@ -100,18 +108,14 @@ public class Progress extends AppCompatActivity {
             }
         }, 1000);
 
-
-
         DataUpdate = new Runnable() {
             @SuppressLint({"SdCardPath", "SetTextI18n"})
             @Override
             public void run() {
                 Log.d("Debug", String.valueOf(t) + ", " +  String.valueOf(x) + ", " + String.valueOf(y) + ", " + String.valueOf(z));
                 N = (float) Math.pow(x*x+y*y+z*z, 0.5);
-
-                if(t < 1.0) { xRest.add(x); yRest.add(y); zRest.add(z);} // Initial data collection
+                if(t < 1.0) { xRest.add(x); yRest.add(y); zRest.add(z); } // Initial data collection
                 else {
-
                     // update the values in rest lists to re-calculate the coordinates of rest state
                     xRest.remove(0);
                     xRest.add(x);
@@ -132,24 +136,27 @@ public class Progress extends AppCompatActivity {
                     float zNormalized = z - zSum / zRest.size();
 
                     float N_normalized = (float) Math.pow(xNormalized * xNormalized + yNormalized * yNormalized + zNormalized * zNormalized, 0.5);
-                    //Log.d("Normalized State", "normalized state coordinates = (" + xNormalized + ", " + yNormalized + ", " + zNormalized + "). N_normalized = " + N_normalized);
-
+                    Log.d("Debug", "normalized state coordinates = (" + xNormalized + ", " + yNormalized + ", " + zNormalized + "). N_normalized = " + N_normalized);
+                    Log.d("Debug", "estimated num steps = " + estimatedNumSteps);
                     // check every 0.5 seconds if step was done and update relevant fields if so
-                    float threshold = 2.0F; // in rest, N_normalized ~ 0.05 m/sec^2
+                    float threshold = 0.5F; // in rest, N_normalized ~ 0.05 m/sec^2  // todo: final value to be determined
                     if (( (t - (int)t)==0 || (t - (int)t)==0.5) && N_normalized > threshold) {
                         estimatedNumSteps += 1;
                         estimatedNumStepsTextView.setText("Estimated Number of Steps: " + estimatedNumSteps);
-                        estimatedCaloriesBurned += (0.57 * weight) + (0.415 * height) + (0.032 * estimatedNumSteps);
-                        estimatedCaloriesBurnedTextView.setText("Estimated Number of Steps: " + estimatedCaloriesBurned);
-                        float stepPercentage = (estimatedNumSteps / stepsTarget) * 100;
-                        float caloriesPercentage = (estimatedCaloriesBurned / caloriesTarget) * 100;
+                        estimatedCaloriesBurned = (int) ((0.57 * userWeight) + (0.415 * userHeight) + (0.032 * estimatedNumSteps));
+                        estimatedCaloriesBurnedTextView.setText("Estimated Number of Calories: " + estimatedCaloriesBurned);
+                        float stepPercentage = 0, caloriesPercentage = 0;
+                        try {
+                            stepPercentage = (float) (estimatedNumSteps / stepsTarget) * 100;
+                            caloriesPercentage = (float) (estimatedCaloriesBurned / userCaloriesTarget) * 100;
+                        }
+                        catch (Exception e) { Log.d("Debug", Objects.requireNonNull(e.getMessage())); return;}
                         String percentageStepsText = stepPercentage + "%";
                         stepsPercentage.setText(percentageStepsText);
                         String percentageCaloriesText = caloriesPercentage + "%";
                         CaloriesPercentage.setText(percentageCaloriesText);
                         stepsProgressBar.setProgress((int) stepPercentage);
                         caloriesProgressBar.setProgress((int) caloriesPercentage);
-
                     }
                 }
 
@@ -160,11 +167,10 @@ public class Progress extends AppCompatActivity {
                 //try {y = Float.parseFloat(btDataRow[2]);} catch (Exception e) {y = yPrev;}
                 //try {z = Float.parseFloat(btDataRow[3]);} catch (Exception e) {z = zPrev;}
                 Random rand = new Random();
-                try {x = rand.nextFloat() * 3;} catch (Exception e) {x = xPrev;}
-                try {y = rand.nextFloat() * 3;} catch (Exception e) {y = yPrev;}
-                try {z = rand.nextFloat() * 3;} catch (Exception e) {z = zPrev;}
+                try {x = rand.nextFloat();} catch (Exception e) {x = xPrev;}
+                try {y = rand.nextFloat();} catch (Exception e) {y = yPrev;}
+                try {z = rand.nextFloat();} catch (Exception e) {z = zPrev;}
                 t += 0.02; t = Math.round(t * 100) / 100.0;
-                //Log.d("BlueToothDataStream", "t = " + t + ", " + "x = " + x + ", " + "y = " + y + ", " + "z = " + z + ", " + "N = " + N);
                 mHandlar.postDelayed(this, 20); }
         };
         handler.postDelayed(DataUpdate,20);
@@ -205,7 +211,7 @@ public class Progress extends AppCompatActivity {
                 while (true) {
                     btDataRow = TerminalFragment.getDataRow();
                     // Sleep for 0.02 seconds.
-                    try { Thread.sleep(20); } catch (InterruptedException e) { }
+                    try { Thread.sleep(20); } catch (InterruptedException e) { Log.d("Debug", Objects.requireNonNull(e.getMessage()));}
                 }
             }
         };

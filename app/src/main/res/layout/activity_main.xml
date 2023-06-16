@@ -61,7 +61,7 @@
             android:inputType="textPersonName" />
 
         <Button
-            android:id="@+id/startButton"
+            android:id="@+id/startPracticeButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Start Practice Session" />

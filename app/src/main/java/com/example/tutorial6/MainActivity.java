@@ -4,9 +4,12 @@ import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -23,16 +26,59 @@ import com.opencsv.CSVReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 
 public class MainActivity extends AppCompatActivity {
+    String userWeight = "";
+    String userHeight = "";
+    String userCaloriesTarget = "";
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Button buttonStart = findViewById(R.id.startButton);
+        Button buttonStartPractice = findViewById(R.id.startPracticeButton);
+
+        EditText editTextUserWeight = findViewById(R.id.weightEditText);
+        TextWatcher textWatcherUserWeight = new TextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                userWeight = editTextUserWeight.getText().toString();
+                Log.d("Debug", "userWeight = " + userWeight); }
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {    }
+            @Override
+            public void afterTextChanged(Editable s) {  }
+        };
+        editTextUserWeight.addTextChangedListener(textWatcherUserWeight);
+
+        EditText editTextUserHeight = findViewById(R.id.heightEditText);
+        TextWatcher textWatcherUserHeight = new TextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                userHeight = editTextUserHeight.getText().toString();
+                Log.d("Debug", "userHeight = " + userHeight); }
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {    }
+            @Override
+            public void afterTextChanged(Editable s) {  }
+        };
+        editTextUserHeight.addTextChangedListener(textWatcherUserHeight);
+
+        EditText editTextUserCaloriesTarget = findViewById(R.id.goalEditText);
+        TextWatcher textWatcherUserCaloriesTarget = new TextWatcher() {
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                userCaloriesTarget = editTextUserCaloriesTarget.getText().toString();
+                Log.d("Debug", "userCaloriesTarget = " + userCaloriesTarget); }
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {    }
+            @Override
+            public void afterTextChanged(Editable s) {  }
+        };
+        editTextUserCaloriesTarget.addTextChangedListener(textWatcherUserCaloriesTarget);
+
         BarChart barChart = findViewById(R.id.barchart);
         Legend legend = barChart.getLegend();
         legend.setForm(Legend.LegendForm.SQUARE);
@@ -95,21 +141,18 @@ public class MainActivity extends AppCompatActivity {
 
         barChart.invalidate();
 
-        buttonStart.setOnClickListener(new View.OnClickListener() {
+        buttonStartPractice.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ClickOpenCSV();
+                ClickStartSession();
             }
         });
     }
 
-    private void ClickLiveChart() {
-        Intent intent = new Intent(this, MainActivity.class);
-        startActivity(intent);
-    }
-
-    private void ClickOpenCSV() {
+    private void ClickStartSession() {
         Intent intent = new Intent(this, Progress.class);
+        intent.putExtra("userSettings", userHeight.toString() + ", " + userWeight.toString() + ", " + userCaloriesTarget.toString());
+        Log.d("Debug", "data sent");
         startActivity(intent);
     }
 
