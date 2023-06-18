@@ -1,6 +1,5 @@
 package com.example.tutorial6;
 import android.annotation.SuppressLint;
-import android.content.Intent;
 import android.widget.ProgressBar;
 import android.os.Bundle;
 import android.os.Handler;
@@ -57,35 +56,29 @@ public class Progress extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_progress);
 
+        // Set buttons , progress bars and text boxes
         Button endSessionButton = (Button) findViewById(R.id.endSessionButton);
-
         TextView estimatedNumStepsTextView = (TextView) findViewById(R.id.Steps);
         TextView estimatedCaloriesBurnedTextView = (TextView) findViewById(R.id.Calories);
-
         time = (EditText) findViewById(R.id.Time);
-
         ProgressBar stepsProgressBar = findViewById(R.id.StepsprogressBar);
         ProgressBar caloriesProgressBar = findViewById(R.id.CaloriesprogressBar);
         stepsProgressBar.setMax(100);
         caloriesProgressBar.setMax(100);
-
         TextView CaloriesPercentage = (TextView) findViewById(R.id.caloriesPercentage);
         TextView stepsPercentage = (TextView) findViewById(R.id.stepsPercentage);
 
-        Log.d("Debug", "75");
+        // Fetch user's data from MainActivity
         if( getIntent().getExtras() != null) {
             String userSettings = getIntent().getStringExtra("userSettings");
-            Log.d("Debug", "78");
-            String[] userArray = userSettings.split(", ");
-            Log.d("Debug", "80");
+            assert userSettings != null; String[] userArray = userSettings.split(", ");
             try {
-            userHeight = Integer.parseInt(userArray[0]);
-            userWeight = Integer.parseInt(userArray[1]);
-            userCaloriesTarget = Integer.parseInt(userArray[2]); }
+                userHeight = Integer.parseInt(userArray[0]);
+                userWeight = Integer.parseInt(userArray[1]);
+                userCaloriesTarget = Integer.parseInt(userArray[2]); }
             catch (Exception ignored) { }
             Log.d("Debug", "h = " + userHeight + ", w =" + userWeight + ", c = " + userCaloriesTarget); }
-        Log.d("Debug", "83");
-        // todo: fix formula
+        // todo: change calories formula
         //int stepsTarget = (int) ((userCaloriesTarget - (0.57 * userWeight) - (0.415 * userHeight)) / 0.032);
         int stepsTarget = userCaloriesTarget * 40;
 
@@ -102,7 +95,8 @@ public class Progress extends AppCompatActivity {
                 onBackStackChanged();
         */
 
-        startThread();
+        // Start sampling from arduino device
+        startArduinoSamplingThread();
 
         sessionStartTime = System.currentTimeMillis();
         updateTime();  // Update the time initially
@@ -113,7 +107,6 @@ public class Progress extends AppCompatActivity {
             @SuppressLint({"SdCardPath", "SetTextI18n"})
             @Override
             public void run() {
-                //Log.d("Debug", String.valueOf(t) + ", " +  String.valueOf(x) + ", " + String.valueOf(y) + ", " + String.valueOf(z));
                 N = (float) Math.pow(x*x+y*y+z*z, 0.5);
                 if(t < 1.0) { xRest.add(x); yRest.add(y); zRest.add(z); } // Initial data collection
                 else {
@@ -129,16 +122,13 @@ public class Progress extends AppCompatActivity {
                     for (int i = 0; i < xRest.size(); i++) {
                         xSum += xRest.get(i);
                         ySum += yRest.get(i);
-                        zSum += zRest.get(i);
-                    }
+                        zSum += zRest.get(i); }
 
                     float xNormalized = x - xSum / xRest.size();
                     float yNormalized = y - ySum / yRest.size();
                     float zNormalized = z - zSum / zRest.size();
 
                     float N_normalized = (float) Math.pow(xNormalized * xNormalized + yNormalized * yNormalized + zNormalized * zNormalized, 0.5);
-                    //Log.d("Debug", "normalized state coordinates = (" + xNormalized + ", " + yNormalized + ", " + zNormalized + "). N_normalized = " + N_normalized);
-                    //Log.d("Debug", "estimated num steps = " + estimatedNumSteps);
                     // check every 0.5 seconds if step was done and update relevant fields if so
                     float threshold = 0.4F; // in rest, N_normalized ~ 0.05 m/sec^2  // todo: final value to be determined
                     if (( (t - (int)t)==0 || (t - (int)t)==0.5) && N_normalized > threshold) {
@@ -147,7 +137,6 @@ public class Progress extends AppCompatActivity {
                         // estimatedCaloriesBurned = (int) ((0.57 * userWeight) + (0.415 * userHeight) + (0.032 * estimatedNumSteps));
                         estimatedCaloriesBurned = estimatedNumSteps / 40; // todo fix formula
                         estimatedCaloriesBurnedTextView.setText("Estimated Number of Calories: " + estimatedCaloriesBurned);
-                        //float stepPercentage = 0, caloriesPercentage = 0;
                         float stepPercentage = (float) estimatedNumSteps / (float) stepsTarget * 100;
                         stepPercentage = Math.round(stepPercentage * 10) / 10f;
                         float caloriesPercentage = (float) estimatedCaloriesBurned / (float) userCaloriesTarget * 100;
@@ -157,9 +146,7 @@ public class Progress extends AppCompatActivity {
                         String percentageCaloriesText = caloriesPercentage + "%";
                         CaloriesPercentage.setText(percentageCaloriesText);
                         stepsProgressBar.setProgress((int) stepPercentage);
-                        caloriesProgressBar.setProgress((int) caloriesPercentage);
-                    }
-                }
+                        caloriesProgressBar.setProgress((int) caloriesPercentage); } }
 
                 xPrev = x;
                 yPrev = y;
@@ -190,11 +177,7 @@ public class Progress extends AppCompatActivity {
     }
 
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        // Remove the callback when the activity is destroyed to prevent memory leaks
-        handler.removeCallbacks(runnable);
-    }
+    protected void onDestroy() { super.onDestroy(); handler.removeCallbacks(runnable); }
 
     private void updateTime() {
         long currentTime = System.currentTimeMillis();
@@ -203,7 +186,7 @@ public class Progress extends AppCompatActivity {
         String elapsedTimeFormatted = sdf.format(new Date(elapsedTime));
         time.setText(elapsedTimeFormatted); }
 
-    public void startThread() {
+    public void startArduinoSamplingThread() {
         Thread thread = new Thread() {
             @Override
             public void run() {
@@ -212,8 +195,6 @@ public class Progress extends AppCompatActivity {
                     // Sleep for 0.02 seconds.
                     try { Thread.sleep(20); } catch (InterruptedException e) { Log.d("Debug", Objects.requireNonNull(e.getMessage()));} } } };
         thread.start(); }
-
-    //public void onBackStackChanged() { getSupportActionBar().setDisplayHomeAsUpEnabled(getSupportFragmentManager().getBackStackEntryCount() > 0); }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
@@ -240,9 +221,8 @@ public class Progress extends AppCompatActivity {
         Log.d("error saveToCsv", "dir exists");
         String csvFilePath = dirPath + filename + ".csv";
         Log.d("error saveToCsv", "csvFilePath = " + csvFilePath);
-
         try {
-            // todo: tomer to tell me how to append rows to files and not re-create them every time
+            // todo:  dont know how to append rows to files and not re-create them every time
             File file = new File(csvFilePath);
             FileWriter writer = new FileWriter(file);
             writer.append("TIME:"); writer.append(",");  writer.append("ESTIMATED NUMBER OF STEPS:");
@@ -252,7 +232,6 @@ public class Progress extends AppCompatActivity {
             writer.append(formattedDateAndTime);writer.append(","); writer.append(Integer.toString(estimatedNumSteps));
             writer.flush();
             writer.close();
-
             // Show a success message or perform other actions
             Toast.makeText(this, "data saved successfully", Toast.LENGTH_SHORT).show(); }
         catch (IOException e) {

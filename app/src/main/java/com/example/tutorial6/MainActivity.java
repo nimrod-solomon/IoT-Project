@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
             for (int i = 0; i < 50; i++) {
                 String randomDate = randPastWeekDate();
                 Random random = new Random();
-                int randomNumSteps = random.nextInt(10001);
+                int randomNumSteps = random.nextInt(1001);
                 int randomNumCalories = randomNumSteps / 25 ;
                 String line = randomDate + "," + randomNumSteps + "," + randomNumCalories + "\n";
                 writer.write(line); }
@@ -149,11 +149,9 @@ public class MainActivity extends AppCompatActivity {
         List<BarEntry> entries = new ArrayList<>();
         for (int i = 0; i < 21; i += 3) {
             int sumSteps = 0; for (int number : steps.get(i / 3)) { sumSteps += number; }
-            int cntStpes = steps.get(i / 3).size();
-            entries.add(new BarEntry(i, sumSteps / cntStpes));
+            entries.add(new BarEntry(i, sumSteps));
             int sumCalories = 0; for (int number : calories.get(i / 3)) { sumCalories += number; }
-            int cntCalories = calories.get(i / 3).size();
-            entries.add(new BarEntry(i + 1, sumCalories / cntCalories)); }
+            entries.add(new BarEntry(i + 1, sumCalories)); }
         BarDataSet set  = new BarDataSet(entries, "BarDataSet");
         set.setColors(colors);
         set.setValueTextColor(Color.WHITE);
