@@ -10,7 +10,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -30,12 +29,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.Random;
 
@@ -51,45 +47,32 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Set the data file
         File dir = new File(dataDirPath);
-        if (!dir.exists()) { dir.mkdir(); Log.d("Debug", "dir not exists");}
-        Log.d("Debug", "dir exists");
+        if (!dir.exists()) { dir.mkdir(); }
         String csvFilePath = dataDirPath + "/" + dataFileName + ".csv";
-        Log.d("Debug", "csvFilePath = " + csvFilePath);
         try {
+            // todo: these lines creates new document every time.
+            //  need to figure how to add lines to existing file
             File file = new File(csvFilePath);
             FileWriter writer = new FileWriter(file);
             writer.append("SessionTime,StepsCount,CaloriesCount\n");
 
-            // Iterate over the entries and save the X, Y, Z coordinates
+            // todo: these lines create 50 random records.
+            //  should be deleted sometime and be replaced with real data lines
             for (int i = 0; i < 50; i++) {
                 String randomDate = randPastWeekDate();
                 Random random = new Random();
                 int randomNumSteps = random.nextInt(10001);
                 int randomNumCalories = randomNumSteps / 25 ;
-
                 String line = randomDate + "," + randomNumSteps + "," + randomNumCalories + "\n";
                 writer.write(line); }
-
             writer.flush();
-            writer.close();
-            // Show a success message or perform other actions
-            Toast.makeText(this, "data saved successfully", Toast.LENGTH_SHORT).show(); }
-        catch (IOException e) {
-            e.printStackTrace();
-            Log.d("error", e.getMessage());
-            // Show an error message or perform error handling
-            Toast.makeText(this, "Error saving data", Toast.LENGTH_SHORT).show(); }
+            writer.close(); }
+        catch (IOException e) { Log.d("error", Objects.requireNonNull(e.getMessage())); }
 
-
-
-
-
-
-
-
+        // Set buttons and text boxes
         Button buttonStartPractice = findViewById(R.id.startPracticeButton);
-
         EditText editTextUserWeight = findViewById(R.id.weightEditText);
         TextWatcher textWatcherUserWeight = new TextWatcher() {
             @Override
@@ -102,7 +85,6 @@ public class MainActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {  }
         };
         editTextUserWeight.addTextChangedListener(textWatcherUserWeight);
-
         EditText editTextUserHeight = findViewById(R.id.heightEditText);
         TextWatcher textWatcherUserHeight = new TextWatcher() {
             @Override
@@ -115,7 +97,6 @@ public class MainActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {  }
         };
         editTextUserHeight.addTextChangedListener(textWatcherUserHeight);
-
         EditText editTextUserCaloriesTarget = findViewById(R.id.goalEditText);
         TextWatcher textWatcherUserCaloriesTarget = new TextWatcher() {
             @Override
@@ -129,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
         };
         editTextUserCaloriesTarget.addTextChangedListener(textWatcherUserCaloriesTarget);
 
+        // Set bar chart
         BarChart barChart = findViewById(R.id.barchart);
         Legend legend = barChart.getLegend();
         legend.setForm(Legend.LegendForm.SQUARE);
@@ -137,32 +119,20 @@ public class MainActivity extends AppCompatActivity {
         LegendEntry l1 = new LegendEntry("Steps", Legend.LegendForm.CIRCLE,10f,2f,null, Color.BLUE);
         LegendEntry l2 = new LegendEntry("Calories", Legend.LegendForm.CIRCLE,10f,2f,null, Color.CYAN);
         legend.setCustom(new LegendEntry[]{l1,l2});
-
         ArrayList<Integer> colors = new ArrayList<>();
-        colors.add(Color.BLUE);
-        colors.add(Color.CYAN);
-        colors.add(Color.BLUE);
-        colors.add(Color.CYAN);
-        colors.add(Color.BLUE);
-        colors.add(Color.CYAN);
-        colors.add(Color.BLUE);
-        colors.add(Color.CYAN);
-        colors.add(Color.BLUE);
-        colors.add(Color.CYAN);
-        colors.add(Color.BLUE);
-        colors.add(Color.CYAN);
-        colors.add(Color.BLUE);
-        colors.add(Color.CYAN);
+        colors.add(Color.BLUE); colors.add(Color.CYAN); colors.add(Color.BLUE);
+        colors.add(Color.CYAN); colors.add(Color.BLUE); colors.add(Color.CYAN);
+        colors.add(Color.BLUE); colors.add(Color.CYAN); colors.add(Color.BLUE);
+        colors.add(Color.CYAN); colors.add(Color.BLUE); colors.add(Color.CYAN);
+        colors.add(Color.BLUE); colors.add(Color.CYAN);
 
-        @SuppressLint("SdCardPath") ArrayList<String[]> csvProjectData = CsvRead("/sdcard/csv_dir/project_data.csv");
-
+        // read data from data file to bar plot
+        @SuppressLint("SdCardPath") ArrayList<String[]> csvProjectData = CsvRead();
         ArrayList<ArrayList<Integer>> steps = new ArrayList<>();
         ArrayList<ArrayList<Integer>> calories = new ArrayList<>();
         for (int i = 0; i < 7; i ++) {
             steps.add(new ArrayList<>());
             calories.add(new ArrayList<>()); }
-
-
         ArrayList<String> dates = new ArrayList<>();
         for (String[] row : csvProjectData){
             if (row[0].equals("SessionTime")) continue;
@@ -170,8 +140,6 @@ public class MainActivity extends AppCompatActivity {
             if (!dates.contains(date)) { dates.add(date);} }
         Collections.sort(dates);
         while (dates.size() > 7) {dates.remove(0);}
-        Log.d("Debug", String.valueOf(dates));
-
         for (String[] row : csvProjectData){
             if (row[0].equals("SessionTime")) continue;
             String date = row[0].split(" ")[0];
@@ -181,24 +149,14 @@ public class MainActivity extends AppCompatActivity {
             if (index > -1) {
                 steps.get(index).add(numSteps);
                 calories.get(index).add(numCalories); } }
-
         List<BarEntry> entries = new ArrayList<>();
         for (int i = 0; i < 21; i += 3) {
-            int sumSteps = 0;
-            for (int number : steps.get(i / 3)) {
-                sumSteps += number;
-            }
+            int sumSteps = 0; for (int number : steps.get(i / 3)) { sumSteps += number; }
             int cntStpes = steps.get(i / 3).size();
             entries.add(new BarEntry(i, sumSteps / cntStpes));
-            int sumCalories = 0;
-            for (int number : calories.get(i / 3)) {
-                sumCalories += number;
-            }
+            int sumCalories = 0; for (int number : calories.get(i / 3)) { sumCalories += number; }
             int cntCalories = calories.get(i / 3).size();
-            entries.add(new BarEntry(i + 1, sumCalories / cntCalories));
-        }
-        Log.d("Debug", "196");
-
+            entries.add(new BarEntry(i + 1, sumCalories / cntCalories)); }
         BarDataSet set  = new BarDataSet(entries, "BarDataSet");
         set.setColors(colors);
         set.setValueTextColor(Color.WHITE);
@@ -207,12 +165,9 @@ public class MainActivity extends AppCompatActivity {
         data.setBarWidth(0.9f);
         barChart.setData(data);
         String[] xAxisLables = new String[]{
-                dates.get(0).substring(0,5), "", "",
-                dates.get(1).substring(0,5), "", "",
-                dates.get(2).substring(0,5), "", "",
-                dates.get(3).substring(0,5), "", "",
-                dates.get(4).substring(0,5), "", "",
-                dates.get(5).substring(0,5), "", "",
+                dates.get(0).substring(0,5), "", "", dates.get(1).substring(0,5), "", "",
+                dates.get(2).substring(0,5), "", "", dates.get(3).substring(0,5), "", "",
+                dates.get(4).substring(0,5), "", "", dates.get(5).substring(0,5), "", "",
                 dates.get(6).substring(0,5), "", ""};
         XAxis xAxis = barChart.getXAxis();
         xAxis.setValueFormatter(new IndexAxisValueFormatter(xAxisLables));
@@ -221,36 +176,25 @@ public class MainActivity extends AppCompatActivity {
         barChart.getAxisLeft().setEnabled(false);
         barChart.getAxisRight().setEnabled(false);
         barChart.getXAxis().setDrawGridLines(false);
-
         barChart.invalidate();
 
-        buttonStartPractice.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ClickStartSession();
-            }
-        });
+        buttonStartPractice.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { ClickStartSession(); } });
     }
 
     private void ClickStartSession() {
         Intent intent = new Intent(this, Progress.class);
         intent.putExtra("userSettings", userHeight.toString() + ", " + userWeight.toString() + ", " + userCaloriesTarget.toString());
         Log.d("Debug", "data sent");
-        startActivity(intent);
-    }
+        startActivity(intent); }
 
-    private ArrayList<String[]> CsvRead(String filename) {
+    private ArrayList<String[]> CsvRead() {
         ArrayList<String[]> csvData = new ArrayList<>();
         try {
-            File file = new File(filename);
+            @SuppressLint("SdCardPath") File file = new File("/sdcard/csv_dir/project_data.csv");
             CSVReader reader = new CSVReader(new FileReader(file));
             String[] nextLine = reader.readNext();
-            while ((nextLine) != null) {
-                csvData.add(nextLine);
-                nextLine = reader.readNext();
-                }
-        }
-        catch (Exception e) { Log.d("Debug", e.getMessage()); }
+            while ((nextLine) != null) { csvData.add(nextLine); nextLine = reader.readNext(); } }
+        catch (Exception e) { Log.d("Debug", Objects.requireNonNull(e.getMessage())); }
         return csvData;
     }
 
