@@ -46,7 +46,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Log.d("Debug", "49");
 
         // Set the data file
         File dir = new File(dataDirPath);
@@ -70,7 +69,6 @@ public class MainActivity extends AppCompatActivity {
             writer.flush();
             writer.close(); }
         catch (IOException e) { Log.d("Debug", Objects.requireNonNull(e.getMessage())); }
-        Log.d("Debug", "73");
         // Set buttons and text boxes
         Button buttonStartPractice = findViewById(R.id.startPracticeButton);
         EditText editTextUserWeight = findViewById(R.id.weightEditText);
@@ -106,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable s) {  } };
         editTextUserCaloriesTarget.addTextChangedListener(textWatcherUserCaloriesTarget);
-        Log.d("Debug", "109");
+
         // Set bar chart
         BarChart barChart = findViewById(R.id.barchart);
         Legend legend = barChart.getLegend();
@@ -122,7 +120,7 @@ public class MainActivity extends AppCompatActivity {
         colors.add(Color.BLUE); colors.add(Color.CYAN); colors.add(Color.BLUE);
         colors.add(Color.CYAN); colors.add(Color.BLUE); colors.add(Color.CYAN);
         colors.add(Color.BLUE); colors.add(Color.CYAN);
-        Log.d("Debug", "125");
+
         // read data from data file to bar plot
         @SuppressLint("SdCardPath") ArrayList<String[]> csvProjectData = CsvRead();
         ArrayList<ArrayList<Integer>> steps = new ArrayList<>();
@@ -146,7 +144,6 @@ public class MainActivity extends AppCompatActivity {
             if (index > -1) {
                 steps.get(index).add(numSteps);
                 calories.get(index).add(numCalories); } }
-        Log.d("Debug", "149");
         List<BarEntry> entries = new ArrayList<>();
         for (int i = 0; i < 21; i += 3) {
             int sumSteps = 0; for (int number : steps.get(i / 3)) { sumSteps += number; }
@@ -173,9 +170,7 @@ public class MainActivity extends AppCompatActivity {
         barChart.getAxisRight().setEnabled(false);
         barChart.getXAxis().setDrawGridLines(false);
         barChart.invalidate();
-        Log.d("Debug", "176");
         buttonStartPractice.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { ClickStartSession(); } });
-        Log.d("Debug", "178");
     }
 
     private void ClickStartSession() {
