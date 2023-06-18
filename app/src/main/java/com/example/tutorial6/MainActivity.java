@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
                 writer.write(line); }
             writer.flush();
             writer.close(); }
-        catch (IOException e) { Log.d("error", Objects.requireNonNull(e.getMessage())); }
+        catch (IOException e) { Log.d("Debug", Objects.requireNonNull(e.getMessage())); }
 
         // Set buttons and text boxes
         Button buttonStartPractice = findViewById(R.id.startPracticeButton);
@@ -82,8 +82,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {    }
             @Override
-            public void afterTextChanged(Editable s) {  }
-        };
+            public void afterTextChanged(Editable s) {  } };
         editTextUserWeight.addTextChangedListener(textWatcherUserWeight);
         EditText editTextUserHeight = findViewById(R.id.heightEditText);
         TextWatcher textWatcherUserHeight = new TextWatcher() {
@@ -94,8 +93,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {    }
             @Override
-            public void afterTextChanged(Editable s) {  }
-        };
+            public void afterTextChanged(Editable s) {  } };
         editTextUserHeight.addTextChangedListener(textWatcherUserHeight);
         EditText editTextUserCaloriesTarget = findViewById(R.id.goalEditText);
         TextWatcher textWatcherUserCaloriesTarget = new TextWatcher() {
@@ -106,8 +104,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {    }
             @Override
-            public void afterTextChanged(Editable s) {  }
-        };
+            public void afterTextChanged(Editable s) {  } };
         editTextUserCaloriesTarget.addTextChangedListener(textWatcherUserCaloriesTarget);
 
         // Set bar chart
@@ -195,8 +192,7 @@ public class MainActivity extends AppCompatActivity {
             String[] nextLine = reader.readNext();
             while ((nextLine) != null) { csvData.add(nextLine); nextLine = reader.readNext(); } }
         catch (Exception e) { Log.d("Debug", Objects.requireNonNull(e.getMessage())); }
-        return csvData;
-    }
+        return csvData; }
 
     private String randPastWeekDate() {
         Date now = new Date();  // Get the current date
