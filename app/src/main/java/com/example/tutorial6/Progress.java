@@ -4,6 +4,7 @@ import android.widget.ProgressBar;
 import android.os.Bundle;
 import android.os.Handler;
 
+import java.io.Writer;
 import java.util.Objects;
 import java.util.Random;
 
@@ -82,7 +83,13 @@ public class Progress extends AppCompatActivity {
         //int stepsTarget = (int) ((userCaloriesTarget - (0.57 * userWeight) - (0.415 * userHeight)) / 0.032);
         int stepsTarget = userCaloriesTarget * 40;
 
-        endSessionButton.setOnClickListener(v -> ClickBack());
+        endSessionButton.setOnClickListener(v -> {
+            try {
+                ClickBack();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
 
         /*
             getSupportFragmentManager().addOnBackStackChangedListener(this);
@@ -202,7 +209,20 @@ public class Progress extends AppCompatActivity {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         return true; }
 
-    private void ClickBack(){ finish(); }
+    @SuppressLint("SdCardPath")
+    private void ClickBack() throws IOException { saveSessionData(); finish(); }
+
+    private void saveSessionData() throws IOException {
+        Date sessionStartTimeDateFormat = new Date(sessionStartTime);
+        @SuppressLint("SimpleDateFormat") SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+        String sessionStartTimeStrFormat = dateFormat.format(sessionStartTimeDateFormat);
+        @SuppressLint("SdCardPath") Writer writer = new FileWriter("/sdcard/csv_dir/project_data.csv", true);
+        String row = sessionStartTimeStrFormat + "," + estimatedNumSteps + "," + estimatedCaloriesBurned + "\n";
+        writer.write(row);
+        writer.flush();
+        writer.close();
+        Log.d("Debug", row + " saved!");
+    }
 
     private ArrayList<Entry> dataValues1() {
         ArrayList<Entry> dataVals = new ArrayList<Entry>();
