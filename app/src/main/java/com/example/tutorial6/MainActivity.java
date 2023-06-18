@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -25,19 +26,68 @@ import com.opencsv.CSVReader;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.Random;
 
 
 public class MainActivity extends AppCompatActivity {
     String userWeight = "";
     String userHeight = "";
     String userCaloriesTarget = "";
+    @SuppressLint("SdCardPath") String dataDirPath = "/sdcard/csv_dir";
+    String dataFileName = "project_data";
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        File dir = new File(dataDirPath);
+        if (!dir.exists()) { dir.mkdir(); Log.d("Debug", "dir not exists");}
+        Log.d("Debug", "dir exists");
+        String csvFilePath = dataDirPath + "/" + dataFileName + ".csv";
+        Log.d("Debug", "csvFilePath = " + csvFilePath);
+        try {
+            File file = new File(csvFilePath);
+            FileWriter writer = new FileWriter(file);
+            writer.append("SessionTime,StepsCount,CaloriesCount\n");
+
+            // Iterate over the entries and save the X, Y, Z coordinates
+            for (int i = 0; i < 50; i++) {
+                String randomDate = randPastWeekDate();
+                Random random = new Random();
+                int randomNumSteps = random.nextInt(10001);
+                int randomNumCalories = randomNumSteps / 25 ;
+
+                String line = randomDate + "," + randomNumSteps + "," + randomNumCalories + "\n";
+                writer.write(line); }
+
+            writer.flush();
+            writer.close();
+            // Show a success message or perform other actions
+            Toast.makeText(this, "data saved successfully", Toast.LENGTH_SHORT).show(); }
+        catch (IOException e) {
+            e.printStackTrace();
+            Log.d("error", e.getMessage());
+            // Show an error message or perform error handling
+            Toast.makeText(this, "Error saving data", Toast.LENGTH_SHORT).show(); }
+
+
+
+
+
+
+
+
         Button buttonStartPractice = findViewById(R.id.startPracticeButton);
 
         EditText editTextUserWeight = findViewById(R.id.weightEditText);
@@ -103,24 +153,51 @@ public class MainActivity extends AppCompatActivity {
         colors.add(Color.CYAN);
         colors.add(Color.BLUE);
         colors.add(Color.CYAN);
-        @SuppressLint("SdCardPath") ArrayList<String[]> csvData = CsvRead("/sdcard/csv_dir/data.csv");
+
+        @SuppressLint("SdCardPath") ArrayList<String[]> csvProjectData = CsvRead("/sdcard/csv_dir/project_data.csv");
+
+        ArrayList<ArrayList<Integer>> steps = new ArrayList<>();
+        ArrayList<ArrayList<Integer>> calories = new ArrayList<>();
+        for (int i = 0; i < 7; i ++) {
+            steps.add(new ArrayList<>());
+            calories.add(new ArrayList<>()); }
 
 
-        ArrayList<Integer> steps = new ArrayList<>();
-        ArrayList<Double> calories = new ArrayList<>();
+        ArrayList<String> dates = new ArrayList<>();
+        for (String[] row : csvProjectData){
+            if (row[0].equals("SessionTime")) continue;
+            String date = row[0].split(" ")[0];
+            if (!dates.contains(date)) { dates.add(date);} }
+        Collections.sort(dates);
+        while (dates.size() > 7) {dates.remove(0);}
+        Log.d("Debug", String.valueOf(dates));
 
-        for (int i = csvData.size() - 7; i < csvData.size(); i++){
-            try {
-                steps.add(Integer.parseInt(csvData.get(i)[1]));
-                calories.add(Double.parseDouble(csvData.get(i)[2])); }
-            catch (Exception e) {Log.d("Debug", Objects.requireNonNull(e.getMessage()));}
-        }
+        for (String[] row : csvProjectData){
+            if (row[0].equals("SessionTime")) continue;
+            String date = row[0].split(" ")[0];
+            int numSteps = Integer.parseInt(row[1]);
+            int numCalories = Integer.parseInt(row[2]);
+            int index = dates.indexOf(date);
+            if (index > -1) {
+                steps.get(index).add(numSteps);
+                calories.get(index).add(numCalories); } }
 
         List<BarEntry> entries = new ArrayList<>();
-        for (float i = 0f; i < 21f; i += 3f){
-            int intI = (int) i;
-            entries.add(new BarEntry(intI, steps.get(intI / 3)));
-            entries.add(new BarEntry(intI+1, calories.get(intI / 3).intValue())); }
+        for (int i = 0; i < 21; i += 3) {
+            int sumSteps = 0;
+            for (int number : steps.get(i / 3)) {
+                sumSteps += number;
+            }
+            int cntStpes = steps.get(i / 3).size();
+            entries.add(new BarEntry(i, sumSteps / cntStpes));
+            int sumCalories = 0;
+            for (int number : calories.get(i / 3)) {
+                sumCalories += number;
+            }
+            int cntCalories = calories.get(i / 3).size();
+            entries.add(new BarEntry(i + 1, sumCalories / cntCalories));
+        }
+        Log.d("Debug", "196");
 
         BarDataSet set  = new BarDataSet(entries, "BarDataSet");
         set.setColors(colors);
@@ -129,8 +206,14 @@ public class MainActivity extends AppCompatActivity {
         BarData data = new BarData(set);
         data.setBarWidth(0.9f);
         barChart.setData(data);
-        String[] xAxisLables = new String[]{"Sun.", "", "", "Mon.", "", "",
-                "Tue.", "", "", "Wed.", "", "", "Thu.", "", "", "Fri.", "", "", "Sat.","", ""};
+        String[] xAxisLables = new String[]{
+                dates.get(0).substring(0,5), "", "",
+                dates.get(1).substring(0,5), "", "",
+                dates.get(2).substring(0,5), "", "",
+                dates.get(3).substring(0,5), "", "",
+                dates.get(4).substring(0,5), "", "",
+                dates.get(5).substring(0,5), "", "",
+                dates.get(6).substring(0,5), "", ""};
         XAxis xAxis = barChart.getXAxis();
         xAxis.setValueFormatter(new IndexAxisValueFormatter(xAxisLables));
         xAxis.setGridColor(Color.WHITE);
@@ -170,6 +253,19 @@ public class MainActivity extends AppCompatActivity {
         catch (Exception e) { Log.d("Debug", e.getMessage()); }
         return csvData;
     }
+
+    private String randPastWeekDate() {
+        Date now = new Date();  // Get the current date
+        Date startOfWeek = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));  // Get the start of the past week
+        Date endOfWeek = new Date(now.getTime());  // Get the end of the past week
+        // Generate a random number between the start and end dates
+        Random random = new Random();
+        int randomDay = random.nextInt((int) (endOfWeek.getTime() - startOfWeek.getTime()));
+        Date randomDate = new Date(startOfWeek.getTime() + randomDay);  // Get the random date
+        @SuppressLint("SimpleDateFormat") SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+        String strRandomDate = dateFormat.format(randomDate);
+        Log.d("Debug", strRandomDate);
+        return strRandomDate; }
 }
 
 

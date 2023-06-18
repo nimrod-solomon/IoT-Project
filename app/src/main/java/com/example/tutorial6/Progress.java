@@ -52,7 +52,7 @@ public class Progress extends AppCompatActivity {
     int estimatedCaloriesBurned = 0;
     private final Handler mHandlar = new Handler();
     public String[] btDataRow;
-    int userCaloriesTarget = 100, userHeight = 180, userWeight = 70;
+    int userCaloriesTarget = 100, userHeight = 180, userWeight = 70; // Default Values
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_progress);
@@ -72,21 +72,26 @@ public class Progress extends AppCompatActivity {
         TextView CaloriesPercentage = (TextView) findViewById(R.id.caloriesPercentage);
         TextView stepsPercentage = (TextView) findViewById(R.id.stepsPercentage);
 
-
+        Log.d("Debug", "75");
         if( getIntent().getExtras() != null) {
             String userSettings = getIntent().getStringExtra("userSettings");
+            Log.d("Debug", "78");
             String[] userArray = userSettings.split(", ");
+            Log.d("Debug", "80");
+            try {
             userHeight = Integer.parseInt(userArray[0]);
             userWeight = Integer.parseInt(userArray[1]);
-            userCaloriesTarget = Integer.parseInt(userArray[2]);
+            userCaloriesTarget = Integer.parseInt(userArray[2]); }
+            catch (Exception ignored) { }
             Log.d("Debug", "h = " + userHeight + ", w =" + userWeight + ", c = " + userCaloriesTarget); }
-
+        Log.d("Debug", "83");
         // todo: fix formula
         //int stepsTarget = (int) ((userCaloriesTarget - (0.57 * userWeight) - (0.415 * userHeight)) / 0.032);
         int stepsTarget = userCaloriesTarget * 40;
 
         endSessionButton.setOnClickListener(v -> ClickBack());
-/*
+
+        /*
             getSupportFragmentManager().addOnBackStackChangedListener(this);
             if (ContextCompat.checkSelfPermission(ProgressActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(ProgressActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0); }
@@ -95,7 +100,8 @@ public class Progress extends AppCompatActivity {
                 getSupportFragmentManager().beginTransaction().add(R.id.fragment, new DevicesFragment(), "devices").commit();
             else
                 onBackStackChanged();
-*/
+        */
+
         startThread();
 
         sessionStartTime = System.currentTimeMillis();
@@ -169,7 +175,7 @@ public class Progress extends AppCompatActivity {
                 mHandlar.postDelayed(this, 20); }
         };
         handler.postDelayed(DataUpdate,20);
-/*
+        /*
             endSessionButton.setOnClickListener(new View.OnClickListener() {
                 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
                 @Override
@@ -180,7 +186,7 @@ public class Progress extends AppCompatActivity {
                         mHandlar.removeCallbacks(DataUpdate); }
 
                 }});
-*/
+        */
     }
 
     @Override
