@@ -1,7 +1,9 @@
 package com.example.tutorial6;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
@@ -12,6 +14,9 @@ import android.widget.Button;
 import android.widget.EditText;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentManager;
 
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.Legend;
@@ -47,15 +52,22 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        Log.d("Debug", "54");
+
+        Log.d("Debug", "49");
+
         // Set the data file
         File dir = new File(dataDirPath);
-        if (!dir.exists()) { dir.mkdir(); }
+        Log.d("Debug", "53");
+        if (!dir.exists()) { dir.mkdir(); Log.d("Debug", "54");}
         String csvFilePath = dataDirPath + "/" + dataFileName + ".csv";
+        Log.d("Debug", "55");
         try {
             File file = new File(csvFilePath);
             boolean fileExists = file.exists();
             FileWriter writer = new FileWriter(file, true);
             if(!fileExists) writer.append("SessionTime,StepsCount,CaloriesCount\n");
+            Log.d("Debug", "62");
 
             // todo: these lines create 50 random records.
             //  should be deleted sometime and be replaced with real data lines
@@ -67,8 +79,10 @@ public class MainActivity extends AppCompatActivity {
                 String line = randomDate + "," + randomNumSteps + "," + randomNumCalories + "\n";
                 writer.write(line); }
             writer.flush();
-            writer.close(); }
+            writer.close();
+            Log.d("Debug", "75");}
         catch (IOException e) { Log.d("Debug", Objects.requireNonNull(e.getMessage())); }
+        Log.d("Debug", "73");
         // Set buttons and text boxes
         Button buttonStartPractice = findViewById(R.id.startPracticeButton);
         EditText editTextUserWeight = findViewById(R.id.weightEditText);
@@ -81,6 +95,7 @@ public class MainActivity extends AppCompatActivity {
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {    }
             @Override
             public void afterTextChanged(Editable s) {  } };
+        Log.d("Debug", "86");
         editTextUserWeight.addTextChangedListener(textWatcherUserWeight);
         EditText editTextUserHeight = findViewById(R.id.heightEditText);
         TextWatcher textWatcherUserHeight = new TextWatcher() {
@@ -92,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {    }
             @Override
             public void afterTextChanged(Editable s) {  } };
+        Log.d("Debug", "98");
         editTextUserHeight.addTextChangedListener(textWatcherUserHeight);
         EditText editTextUserCaloriesTarget = findViewById(R.id.goalEditText);
         TextWatcher textWatcherUserCaloriesTarget = new TextWatcher() {
@@ -103,7 +119,9 @@ public class MainActivity extends AppCompatActivity {
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {    }
             @Override
             public void afterTextChanged(Editable s) {  } };
+        Log.d("Debug", "110");
         editTextUserCaloriesTarget.addTextChangedListener(textWatcherUserCaloriesTarget);
+
 
         // Set bar chart
         BarChart barChart = findViewById(R.id.barchart);
@@ -171,7 +189,9 @@ public class MainActivity extends AppCompatActivity {
         barChart.getXAxis().setDrawGridLines(false);
         barChart.invalidate();
         buttonStartPractice.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { ClickStartSession(); } });
+
     }
+
 
     private void ClickStartSession() {
         Intent intent = new Intent(this, Progress.class);
@@ -200,6 +220,8 @@ public class MainActivity extends AppCompatActivity {
         @SuppressLint("SimpleDateFormat") SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
         String strRandomDate = dateFormat.format(randomDate);
         return strRandomDate; }
+
+
 }
 
 

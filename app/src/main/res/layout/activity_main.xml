@@ -7,11 +7,12 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-
-    <RelativeLayout
-        android:id="@+id/fragment"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layout_anchor="@+id/fragment"
+        app:layout_anchorGravity="center"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <TextView
@@ -20,14 +21,6 @@
             android:layout_height="55dp"
             android:text="My Sessions:"
             android:textSize="28dp" />
-    </RelativeLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        app:layout_anchor="@+id/fragment"
-        app:layout_anchorGravity="center">
 
 
         <com.github.mikephil.charting.charts.BarChart
@@ -67,5 +60,16 @@
             android:text="Start Practice Session" />
 
     </LinearLayout>
+
+
+    <RelativeLayout
+        android:id="@+id/fragment"
+        android:layout_width="match_parent"
+        android:layout_height="731dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+    </RelativeLayout>
+
+
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

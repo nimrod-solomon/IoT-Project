@@ -1,5 +1,7 @@
 package com.example.tutorial6;
+import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.pm.PackageManager;
 import android.widget.ProgressBar;
 import android.os.Bundle;
 import android.os.Handler;
@@ -17,6 +19,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentManager;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.data.Entry;
@@ -36,6 +41,7 @@ import java.lang.Math;
 public class Progress extends AppCompatActivity {
     Handler handler =  new Handler();
     Runnable runnable;
+    Thread listeningThread = null;
     EditText time;
     LineChart mpLineChart;
     Runnable DataUpdate;
@@ -56,6 +62,15 @@ public class Progress extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_progress);
+
+        try {getSupportFragmentManager().addOnBackStackChangedListener((FragmentManager.OnBackStackChangedListener) this);}
+        catch (Exception ignored) {}
+        if (ContextCompat.checkSelfPermission(Progress.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(Progress.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0); }
+        if (savedInstanceState == null)
+            getSupportFragmentManager().beginTransaction().add(R.id.fragment, new DevicesFragment(), "devices").commit();
+        else
+            onBackStackChanged();
 
         // Set buttons , progress bars and text boxes
         Button endSessionButton = (Button) findViewById(R.id.endSessionButton);
@@ -83,24 +98,7 @@ public class Progress extends AppCompatActivity {
         //int stepsTarget = (int) ((userCaloriesTarget - (0.57 * userWeight) - (0.415 * userHeight)) / 0.032);
         int stepsTarget = userCaloriesTarget * 40;
 
-        endSessionButton.setOnClickListener(v -> {
-            try {
-                ClickBack();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-
-        /*
-            getSupportFragmentManager().addOnBackStackChangedListener(this);
-            if (ContextCompat.checkSelfPermission(ProgressActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(ProgressActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 0); }
-
-            if (savedInstanceState == null)
-                getSupportFragmentManager().beginTransaction().add(R.id.fragment, new DevicesFragment(), "devices").commit();
-            else
-                onBackStackChanged();
-        */
+        endSessionButton.setOnClickListener(v -> { try { ClickBack(); } catch (IOException e) { e.printStackTrace(); } });
 
         // Start sampling from arduino device
         startArduinoSamplingThread();
@@ -158,29 +156,18 @@ public class Progress extends AppCompatActivity {
                 xPrev = x;
                 yPrev = y;
                 zPrev = z;
-                //try {x = Float.parseFloat(btDataRow[1]);} catch (Exception e) {x = xPrev;}
-                //try {y = Float.parseFloat(btDataRow[2]);} catch (Exception e) {y = yPrev;}
-                //try {z = Float.parseFloat(btDataRow[3]);} catch (Exception e) {z = zPrev;}
-                Random rand = new Random();
-                try {x = rand.nextFloat();} catch (Exception e) {x = xPrev;}
-                try {y = rand.nextFloat();} catch (Exception e) {y = yPrev;}
-                try {z = rand.nextFloat();} catch (Exception e) {z = zPrev;}
+                try {x = Float.parseFloat(btDataRow[1]);} catch (Exception e) {x = xPrev; Log.d("Debug", e.getMessage());}
+                try {y = Float.parseFloat(btDataRow[2]);} catch (Exception e) {y = yPrev; Log.d("Debug", e.getMessage());}
+                try {z = Float.parseFloat(btDataRow[3]);} catch (Exception e) {z = zPrev; Log.d("Debug", e.getMessage());}
+                Log.d("Debug", "t = " + t + ", " + "x = " + x + ", " + "y = " + y + ", " + "z = " + z + ", " + "N = " + N);
+                //Random rand = new Random();
+                //try {x = rand.nextFloat();} catch (Exception e) {x = xPrev;}
+                //try {y = rand.nextFloat();} catch (Exception e) {y = yPrev;}
+                //try {z = rand.nextFloat();} catch (Exception e) {z = zPrev;}
                 t += 0.02; t = Math.round(t * 100) / 100.0;
                 mHandlar.postDelayed(this, 20); }
         };
         handler.postDelayed(DataUpdate,20);
-        /*
-            endSessionButton.setOnClickListener(new View.OnClickListener() {
-                @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-                @Override
-                public void onClick(View v) {
-                    mHandlar.removeCallbacks(DataUpdate);
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        saveToCsv("/sdcard/csv_dir/","data_file");
-                        mHandlar.removeCallbacks(DataUpdate); }
-
-                }});
-        */
     }
 
     @Override
@@ -201,7 +188,8 @@ public class Progress extends AppCompatActivity {
                     btDataRow = TerminalFragment.getDataRow();
                     // Sleep for 0.02 seconds.
                     try { Thread.sleep(20); } catch (InterruptedException e) { Log.d("Debug", Objects.requireNonNull(e.getMessage()));} } } };
-        thread.start(); }
+        thread.start();
+        listeningThread = thread; }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
@@ -210,7 +198,7 @@ public class Progress extends AppCompatActivity {
         return true; }
 
     @SuppressLint("SdCardPath")
-    private void ClickBack() throws IOException { saveSessionData(); finish(); }
+    private void ClickBack() throws IOException { saveSessionData(); listeningThread.stop(); finish(); }
 
     private void saveSessionData() throws IOException {
         Date sessionStartTimeDateFormat = new Date(sessionStartTime);
@@ -281,5 +269,8 @@ public class Progress extends AppCompatActivity {
 
     @Override
     public void onPointerCaptureChanged(boolean hasCapture) { super.onPointerCaptureChanged(hasCapture); }
+
+    public void onBackStackChanged() {
+        getSupportActionBar().setDisplayHomeAsUpEnabled(getSupportFragmentManager().getBackStackEntryCount() > 0); }
 
 }
