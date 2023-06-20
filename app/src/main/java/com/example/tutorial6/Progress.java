@@ -39,6 +39,7 @@ import java.util.Locale;
 import java.lang.Math;
 
 public class Progress extends AppCompatActivity {
+    private final long TIME_DIFF = 2 * 60 * 60 * 1000; // 2 hours in milliseconds
     Handler handler =  new Handler();
     Runnable runnable;
     Thread listeningThread = null;
@@ -103,7 +104,7 @@ public class Progress extends AppCompatActivity {
         // Start sampling from arduino device
         startArduinoSamplingThread();
 
-        sessionStartTime = System.currentTimeMillis();
+        sessionStartTime = System.currentTimeMillis() + TIME_DIFF;
         updateTime();  // Update the time initially
         // Schedule automatic time updates every second
         handler.postDelayed(runnable = new Runnable() { public void run() { updateTime(); handler.postDelayed(this, 1000); } }, 1000);
