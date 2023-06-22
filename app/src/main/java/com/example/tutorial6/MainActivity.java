@@ -185,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void ClickStartSession() {
         Intent intent = new Intent(this, Progress.class);
-        intent.putExtra("userSettings", userHeight.toString() + ", " + userWeight.toString() + ", " + userCaloriesTarget.toString());
+        intent.putExtra("userSettings", userHeight + ", " + userWeight + ", " + userCaloriesTarget);
         Log.d("Debug", "data sent");
         startActivity(intent); }
 

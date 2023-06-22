@@ -1,6 +1,7 @@
 package com.example.tutorial6;
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.widget.ProgressBar;
 import android.os.Bundle;
@@ -92,7 +93,7 @@ public class Progress extends AppCompatActivity {
         //int stepsTarget = (int) (userCaloriesTarget / (0.05 * userWeight * 2.2 * (userHeight / 100) * (userHeight / 100)));
         Log.d("Debug", "User Steps Target: " + stepsTarget + ", User Calories Target: " + userCaloriesTarget + ", Distance Target (KM): " + distanceTargetKM);
 
-        endSessionButton.setOnClickListener(v -> { try { ClickBack(); } catch (IOException e) { e.printStackTrace(); } });
+        endSessionButton.setOnClickListener(v -> { try { ClickBack(); } catch (IOException e) { Log.d("Debug", "hello2" + e.getMessage()); } });
 
         // Start sampling from arduino device
         startArduinoSamplingThread();
@@ -148,7 +149,7 @@ public class Progress extends AppCompatActivity {
                         stepsProgressBar.setProgress((int) stepPercentage);
                         if (estimatedCaloriesBurned >= userCaloriesTarget) {
                             personalTrainer.setText("''Congrats! You've reached your destination. " +
-                                    "Check out moodle for new assignments and go get them done!''");} } }
+                                    "Check out your Moodle for new assignments!''");} } }
 
                 xPrev = x;
                 yPrev = y;
@@ -174,15 +175,14 @@ public class Progress extends AppCompatActivity {
         time.setText(elapsedTimeFormatted); }
 
     public void startArduinoSamplingThread() {
-        Thread thread = new Thread() {
+        listeningThread = new Thread() {
             @Override
             public void run() {
                 while (true) {
                     btDataRow = TerminalFragment.getDataRow();
                     // Sleep for 0.02 seconds.
                     try { Thread.sleep(20); } catch (InterruptedException e) { Log.d("Debug", Objects.requireNonNull(e.getMessage()));} } } };
-        thread.start();
-        listeningThread = thread; }
+        listeningThread.start(); }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu){
@@ -191,7 +191,12 @@ public class Progress extends AppCompatActivity {
         return true; }
 
     @SuppressLint("SdCardPath")
-    private void ClickBack() throws IOException { saveSessionData(); listeningThread.stop(); finish(); }
+    private void ClickBack() throws IOException {
+        saveSessionData(); Log.d("Debug", "195");
+        listeningThread.interrupt();
+        //finish();
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent); }
 
     private void saveSessionData() throws IOException {
         Date sessionStartTimeDateFormat = new Date(sessionStartTime);

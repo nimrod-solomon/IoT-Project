@@ -6,8 +6,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <LinearLayout
-        android:layout_width="409dp"
-        android:layout_height="729dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:orientation="vertical"
         tools:layout_editor_absoluteX="1dp"
         tools:layout_editor_absoluteY="1dp"
@@ -88,8 +88,7 @@
         android:layout_height="wrap_content"
         android:textAlignment="center"
         android:textSize="14dp"
-        android:text=" ''You haven't reached your destination yet.\n
-I recommend you to go up to the faculty from Nesher Gate!''" />
+        android:text=" ''You haven't reached your destination yet.\nI recommend you to go up to the faculty from Nesher Gate!''" />
 
         <Button
             android:id="@+id/endSessionButton"
