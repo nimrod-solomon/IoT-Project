@@ -180,6 +180,8 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void onBackStackChanged() { }
+
 
     private void ClickStartSession() {
         Intent intent = new Intent(this, Progress.class);

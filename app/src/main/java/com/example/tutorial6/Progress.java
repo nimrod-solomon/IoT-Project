@@ -8,7 +8,6 @@ import android.os.Handler;
 
 import java.io.Writer;
 import java.util.Objects;
-import java.util.Random;
 
 import android.util.Log;
 import android.view.Menu;
@@ -16,19 +15,12 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
 
-import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
-
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -54,6 +46,7 @@ public class Progress extends AppCompatActivity {
     float N = 0.0F;
     int estimatedNumSteps = 0;
     int estimatedCaloriesBurned = 0;
+    double estimatedDistance = 0.0;
     private final Handler mHandlar = new Handler();
     public String[] btDataRow;
     int userCaloriesTarget = 100, userHeight = 180, userWeight = 70; // Default Values
@@ -73,14 +66,11 @@ public class Progress extends AppCompatActivity {
 
         // Set buttons , progress bars and text boxes
         Button endSessionButton = (Button) findViewById(R.id.endSessionButton);
-        TextView estimatedNumStepsTextView = (TextView) findViewById(R.id.Steps);
-        TextView estimatedCaloriesBurnedTextView = (TextView) findViewById(R.id.Calories);
+        TextView statisticsTextView = (TextView) findViewById(R.id.sessionStats);
+        TextView personalTrainer = (TextView) findViewById(R.id.personalTrainer);
         time = (EditText) findViewById(R.id.Time);
         ProgressBar stepsProgressBar = findViewById(R.id.StepsprogressBar);
-        ProgressBar caloriesProgressBar = findViewById(R.id.CaloriesprogressBar);
         stepsProgressBar.setMax(100);
-        caloriesProgressBar.setMax(100);
-        TextView CaloriesPercentage = (TextView) findViewById(R.id.caloriesPercentage);
         TextView stepsPercentage = (TextView) findViewById(R.id.stepsPercentage);
 
         // Fetch user's data from MainActivity
@@ -93,7 +83,6 @@ public class Progress extends AppCompatActivity {
                 userCaloriesTarget = Integer.parseInt(userArray[2]); }
             catch (Exception ignored) { }
             Log.d("Debug", "h = " + userHeight + ", w =" + userWeight + ", c = " + userCaloriesTarget); }
-        // todo: change calories formula
         double CaloriesBurnedPerMile = 0.57 * (userWeight * 2.2);
         double strip = userHeight * 0.415;
         double stepCountMile = 160934.4 / strip;
@@ -142,23 +131,24 @@ public class Progress extends AppCompatActivity {
 
                     float N_normalized = (float) Math.pow(xNormalized * xNormalized + yNormalized * yNormalized + zNormalized * zNormalized, 0.5);
                     // check every 0.5 seconds if step was done and update relevant fields if so
-                    float threshold = 2F; // in rest, N_normalized ~ 0.05 m/sec^2  // todo: final value to be determined
+                    float threshold = 2F; // in rest, N_normalized ~ 0.05 m/sec^2
                     if (( (t - (int)t)==0 || (t - (int)t)==0.5) && N_normalized > threshold) {
                         estimatedNumSteps += 1;
-                        estimatedNumStepsTextView.setText("Estimated Number of Steps: " + estimatedNumSteps);
+                        //statisticsTextView.setText("Estimated Number of Steps: " + estimatedNumSteps);
                         estimatedCaloriesBurned = (int) (estimatedNumSteps  * conversationFactor);
-
-                        estimatedCaloriesBurnedTextView.setText("Estimated Number of Calories: " + estimatedCaloriesBurned);
+                        estimatedDistance = Math.round(estimatedNumSteps * strip / 100000 * 1000) / 1000.0;
+                        statisticsTextView.setText(
+                                "\nEstimated Number of Steps:" + estimatedNumSteps +
+                                "\n\nEstimated Calories Burned: " + estimatedCaloriesBurned +
+                                "\n\nEstimated Distance: " + estimatedDistance + " km");
                         float stepPercentage = (float) estimatedNumSteps / (float) stepsTarget * 100;
                         stepPercentage = Math.round(stepPercentage * 10) / 10f;
-                        float caloriesPercentage = (float) estimatedCaloriesBurned / (float) userCaloriesTarget * 100;
-                        caloriesPercentage = Math.round(caloriesPercentage * 10) / 10f;
                         String percentageStepsText = stepPercentage + "%";
                         stepsPercentage.setText(percentageStepsText);
-                        String percentageCaloriesText = caloriesPercentage + "%";
-                        CaloriesPercentage.setText(percentageCaloriesText);
                         stepsProgressBar.setProgress((int) stepPercentage);
-                        caloriesProgressBar.setProgress((int) caloriesPercentage); } }
+                        if (estimatedCaloriesBurned >= userCaloriesTarget) {
+                            personalTrainer.setText("''Congrats! You've reached your destination. " +
+                                    "Check out moodle for new assignments and go get them done!''");} } }
 
                 xPrev = x;
                 yPrev = y;
@@ -167,10 +157,6 @@ public class Progress extends AppCompatActivity {
                 try {y = Float.parseFloat(btDataRow[2]);} catch (Exception e) {y = yPrev; Log.d("Debug", Objects.requireNonNull(e.getMessage()));}
                 try {z = Float.parseFloat(btDataRow[3]);} catch (Exception e) {z = zPrev; Log.d("Debug", Objects.requireNonNull(e.getMessage()));}
                 Log.d("Debug", "t = " + t + ", " + "x = " + x + ", " + "y = " + y + ", " + "z = " + z + ", " + "N = " + N);
-                //Random rand = new Random();
-                //try {x = rand.nextFloat();} catch (Exception e) {x = xPrev;}
-                //try {y = rand.nextFloat();} catch (Exception e) {y = yPrev;}
-                //try {z = rand.nextFloat();} catch (Exception e) {z = zPrev;}
                 t += 0.02; t = Math.round(t * 100) / 100.0;
                 mHandlar.postDelayed(this, 20); }
         };
