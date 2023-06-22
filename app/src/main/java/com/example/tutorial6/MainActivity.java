@@ -52,22 +52,15 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Log.d("Debug", "54");
-
-        Log.d("Debug", "49");
-
         // Set the data file
-        File dir = new File(dataDirPath);
-        Log.d("Debug", "53");
-        if (!dir.exists()) { dir.mkdir(); Log.d("Debug", "54");}
+        /*File dir = new File(dataDirPath);
+        if (!dir.exists()) { dir.mkdir(); }
         String csvFilePath = dataDirPath + "/" + dataFileName + ".csv";
-        Log.d("Debug", "55");
         try {
             File file = new File(csvFilePath);
             boolean fileExists = file.exists();
             FileWriter writer = new FileWriter(file, true);
             if(!fileExists) writer.append("SessionTime,StepsCount,CaloriesCount\n");
-            Log.d("Debug", "62");
 
             // todo: these lines create 50 random records.
             //  should be deleted sometime and be replaced with real data lines
@@ -79,10 +72,9 @@ public class MainActivity extends AppCompatActivity {
                 String line = randomDate + "," + randomNumSteps + "," + randomNumCalories + "\n";
                 writer.write(line); }
             writer.flush();
-            writer.close();
-            Log.d("Debug", "75");}
-        catch (IOException e) { Log.d("Debug", Objects.requireNonNull(e.getMessage())); }
-        Log.d("Debug", "73");
+            writer.close(); }
+        catch (IOException e) { Log.d("Debug", Objects.requireNonNull(e.getMessage())); }*/
+
         // Set buttons and text boxes
         Button buttonStartPractice = findViewById(R.id.startPracticeButton);
         EditText editTextUserWeight = findViewById(R.id.weightEditText);
@@ -95,7 +87,6 @@ public class MainActivity extends AppCompatActivity {
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {    }
             @Override
             public void afterTextChanged(Editable s) {  } };
-        Log.d("Debug", "86");
         editTextUserWeight.addTextChangedListener(textWatcherUserWeight);
         EditText editTextUserHeight = findViewById(R.id.heightEditText);
         TextWatcher textWatcherUserHeight = new TextWatcher() {
@@ -107,7 +98,6 @@ public class MainActivity extends AppCompatActivity {
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {    }
             @Override
             public void afterTextChanged(Editable s) {  } };
-        Log.d("Debug", "98");
         editTextUserHeight.addTextChangedListener(textWatcherUserHeight);
         EditText editTextUserCaloriesTarget = findViewById(R.id.goalEditText);
         TextWatcher textWatcherUserCaloriesTarget = new TextWatcher() {
@@ -119,9 +109,7 @@ public class MainActivity extends AppCompatActivity {
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {    }
             @Override
             public void afterTextChanged(Editable s) {  } };
-        Log.d("Debug", "110");
         editTextUserCaloriesTarget.addTextChangedListener(textWatcherUserCaloriesTarget);
-
 
         // Set bar chart
         BarChart barChart = findViewById(R.id.barchart);
@@ -218,8 +206,7 @@ public class MainActivity extends AppCompatActivity {
         int randomDay = random.nextInt((int) (endOfWeek.getTime() - startOfWeek.getTime()));
         Date randomDate = new Date(startOfWeek.getTime() + randomDay);  // Get the random date
         @SuppressLint("SimpleDateFormat") SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
-        String strRandomDate = dateFormat.format(randomDate);
-        return strRandomDate; }
+        return dateFormat.format(randomDate); }
 
 
 }
